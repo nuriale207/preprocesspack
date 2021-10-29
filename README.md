@@ -1,1 +1,1 @@
-preprocesspack
+Python package with useful functions for data pre-preprocessing

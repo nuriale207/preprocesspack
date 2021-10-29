@@ -19,10 +19,10 @@ class DataSet:
             raise TypeError("The data parameter must be a list or a numpy array")
 
     def addAttribute(self,attribute):
-        if (isinstance(attribute,Attribute)):
+        if (isinstance(attribute, Attribute)):
             self.data.append(attribute)
         elif(isinstance(attribute,list) or isinstance(attribute,np.ndarray)):
-            attr=Attribute(attribute)
+            attr= Attribute(attribute)
 
     def normalize(self):
         """

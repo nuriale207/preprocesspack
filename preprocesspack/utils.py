@@ -1,9 +1,5 @@
 import math
 from datetime import datetime
-import pandas as pd
-
-from preprocesspack.Attribute import Attribute
-from preprocesspack.DataSet import DataSet
 
 
 def __discretizePoints(x,cut_points):
@@ -120,17 +116,3 @@ def writeLog(file_path, text):
         outfile.writelines(str(today) + " " + text)
         print("Data correctly saved in: " + file_path)
 
-def loadDataSet(path,sep=","):
-    """
-    Function to read a CSV file and save it into a DataSet
-    :param path: path to the CSV file
-    :param header: logical indicating if the first row of data corresponds to the names
-    :param sep: the character separator of the data
-    :return: A DataSet containing the data of the CSV file.
-    """
-    df = pd.read_csv(path,sep=sep)
-    ds=DataSet([])
-    for column in df:
-        attr=Attribute(pd[column],name=column)
-        ds.addAttribute(attr)
-    return ds

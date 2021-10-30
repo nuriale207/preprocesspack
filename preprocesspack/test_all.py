@@ -92,12 +92,17 @@ def test_all():
     print(dataset.getNames())
 
     ##CORRELATION MATRIX
-    graphics.correlationMatrix(dataset)
+    #graphics.correlationMatrix(dataset)
 
     ##ENTROPY PLOT
-    graphics.entropyPlot(dataset)
+    #graphics.entropyPlot(dataset)
 
     ##ROC CURVE PLOT
-    graphics.rocPlot(dataset,1,3)
+    #graphics.rocPlot(dataset,1,3)
 
+    ##LOAD DATASET
+    ds=DataSet.loadDataSet("datos.csv")
+
+    ds.printDataSet()
+    attr.printAttribute()
 test_all()

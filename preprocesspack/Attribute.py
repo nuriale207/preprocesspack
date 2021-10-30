@@ -1,6 +1,7 @@
 import numpy as np
 
-from utils import discretizeEF, discretizeEW, entropy
+from preprocesspack import utils
+#from utils import discretizeEF, discretizeEW, entropy
 
 
 class Attribute:
@@ -39,14 +40,14 @@ class Attribute:
             return Attribute(self.vector, self.name)
         else:
             if (typeDisc == "EF"):
-                vector = discretizeEF(self.vector, num_bins)[0]
+                vector = utils.discretizeEF(self.vector, num_bins)[0]
             else:
-                vector = discretizeEW(self.vector, num_bins)[0]
+                vector = utils.discretizeEW(self.vector, num_bins)[0]
             return Attribute(vector, self.name)
 
     def entropy(self):
         if (type(self.vector[0]) is tuple or (type(self.vector[0]) is int)):
-            return entropy(self.vector)
+            return utils.entropy(self.vector)
         else:
             return None
 
@@ -102,4 +103,9 @@ class Attribute:
         :return:A vector containing the information of the attribute.
         """
         return self.vector
+
+    def printAttribute(self):
+        print(self.name)
+        for i in self.vector:
+            print(i)
 

@@ -140,3 +140,19 @@ class DataSet:
                 matriz.append(attr.getVector())
 
         return pd.DataFrame(matriz)
+
+def loadDataSet(path,sep=","):
+    """
+    Function to read a CSV file and save it into a DataSet
+    :param path: path to the CSV file
+    :param header: logical indicating if the first row of data corresponds to the names
+    :param sep: the character separator of the data
+    :return: A DataSet containing the data of the CSV file.
+    """
+    df = pd.read_csv(path,sep=sep)
+    print(df)
+    ds=DataSet([])
+    for column in df:
+        attr=Attribute.Attribute(list(df[column]),name=column)
+        ds.addAttribute(attr)
+    return ds

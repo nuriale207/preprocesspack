@@ -1,7 +1,9 @@
-from turtle import pd
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from plotnine import *
+
 
 def correlationMatrix(dataset):
     """
@@ -10,9 +12,11 @@ def correlationMatrix(dataset):
     :param dataset:  object of class DataSet
     :return: A plot with the visualization of the correlation matrix
     """
-    df=pd.DataFrame(dataset.data)
-
+    #df=pd.DataFrame(dataset.data)
+    df = dataset.asDataFrame()
+    print(df)
     correlation=df.corr()
+    print(correlation)
     ax = plt.axes()
     sns.heatmap(correlation, ax = ax,cmap="YlGnBu",center=0.5)
     ax.set_title('Correlation Plot')
@@ -20,11 +24,23 @@ def correlationMatrix(dataset):
 
 def entropyPlot(dataset):
     """
-     Function to visualize the entropy of a given dataset
+    Function to visualize the entropy of a given dataset
     :param dataset: object of class DataSet
     :return: A plot with the visualization
     """
-    return
+    entropy=dataset.entropy()
+    names=[]
+    entropyCleaned=[]
+    for i in range(len(entropy)):
+        if(entropy[i]):
+            names.append(dataset.data[i].getName())
+            entropyCleaned.append(entropy[i])
+
+    print(entropyCleaned)
+    print(names)
+    plt.bar(names,entropyCleaned)
+    plt.show()
+
 
 def rocPlot(dataset, vIndex,classIndex):
     """
@@ -34,9 +50,9 @@ def rocPlot(dataset, vIndex,classIndex):
     :param classIndex: index of the class
     :return: A plot with the curve
     """
-    valor = np.array(dataset.data[vIndex])
+    valor = np.array(dataset.data[vIndex].getVector())
     valor = np.sort(valor)
-    etiqueta = np.array(dataset.data[classIndex])
+    etiqueta = np.array(dataset.data[classIndex].getVector())
     TPR = []
     FPR = []
     for i in range(len(valor)):
@@ -56,3 +72,10 @@ def rocPlot(dataset, vIndex,classIndex):
                 FP = FP + 1
         TPR.append(TP / (TP + FN))
         FPR.append(FP / (FP + TN))
+    datos_plot = pd.DataFrame({
+        "TPR": TPR,
+        "FPR": FPR,
+    })
+    ggp = ggplot(data=datos_plot, mapping=aes(x='FPR', y='TPR'))
+    ggp + geom_line()
+    print(ggp+ geom_line())

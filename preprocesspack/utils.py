@@ -1,4 +1,9 @@
 import math
+from datetime import datetime
+import pandas as pd
+
+from preprocesspack.Attribute import Attribute
+from preprocesspack.DataSet import DataSet
 
 
 def __discretizePoints(x,cut_points):
@@ -15,7 +20,7 @@ def __discretizePoints(x,cut_points):
         for j in range(0, len(cut_points)):
             if (float(x[i]) >= cut_points[j][0] and float(x[i]) <= cut_points[j][1]):
                 vCat[i] = cut_points[j]
-    return (vCat, cut_points)
+    return (vCat)
 
 def discretizeEW(x,num_bins):
     """
@@ -98,5 +103,34 @@ def entropy(x):
         probabilidad=list(cuenta.values())[i]/n
         if(probabilidad>0):
             entropia=entropia+((-1)*probabilidad*math.log2(probabilidad))
-    print(entropia)
     return entropia
+
+
+def writeLog(file_path, text):
+    """
+    Function to save a log text into a file
+    :param file_path: a string with the path where the text has to be saved
+    :param text: a string that contains the text to write
+    :return:
+    """
+    today = datetime.now()
+
+        # Write data in file
+    with open(file_path, 'w') as outfile:
+        outfile.writelines(str(today) + " " + text)
+        print("Data correctly saved in: " + file_path)
+
+def loadDataSet(path,sep=","):
+    """
+    Function to read a CSV file and save it into a DataSet
+    :param path: path to the CSV file
+    :param header: logical indicating if the first row of data corresponds to the names
+    :param sep: the character separator of the data
+    :return: A DataSet containing the data of the CSV file.
+    """
+    df = pd.read_csv(path,sep=sep)
+    ds=DataSet([])
+    for column in df:
+        attr=Attribute(pd[column],name=column)
+        ds.addAttribute(attr)
+    return ds

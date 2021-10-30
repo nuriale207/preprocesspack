@@ -11,9 +11,9 @@ setup(
    long_description=open('README.txt').read(),
    tests_require=['pytest'],
    install_requires=[
-      "seaborn >= 0.9.0",
-      "pandas >= 0.25.1",
-      "matplotlib >= 3.1.1",
-      "numpy >=1.17.2"
+      "seaborn >= 0.9.1",
+      "pandas >= 0.24.2",
+      "matplotlib >= 2.2.5",
+      "numpy >=1.16.6"
    ],
 )

@@ -5,7 +5,7 @@ import numpy as np
 from plotnine import *
 
 
-def correlationMatrix(dataset):
+def correlationPlot(dataset):
     """
     Function to visualize the correlation of a given dataset
 
@@ -13,10 +13,8 @@ def correlationMatrix(dataset):
     :return: A plot with the visualization of the correlation matrix
     """
     #df=pd.DataFrame(dataset.data)
-    df = dataset.asDataFrame()
-    print(df)
+    df = dataset.asDataFrame(includeCategorical=False,transpose=False)
     correlation=df.corr()
-    print(correlation)
     ax = plt.axes()
     sns.heatmap(correlation, ax = ax,cmap="YlGnBu",center=0.5)
     ax.set_title('Correlation Plot')
@@ -36,8 +34,6 @@ def entropyPlot(dataset):
             names.append(dataset.data[i].getName())
             entropyCleaned.append(entropy[i])
 
-    print(entropyCleaned)
-    print(names)
     plt.bar(names,entropyCleaned)
     plt.show()
 

@@ -3,29 +3,31 @@ import numpy as np
 from preprocesspack import Attribute
 
 import pandas as pd
+
+
 class DataSet:
-    def __init__(self,data,name=""):
+    def __init__(self, data, name=""):
         """
             Basic constructor of the Dataset class. This function creates an object of class DataSet
 
             :param data: List containing Attribute objects
             :param name: Character with the name of the dataset
             """
-        if (isinstance(data,list) or isinstance(data,np.ndarray)):
-            self.data=data
-            self.name=name
-            self.size=len(data)
+        if (isinstance(data, list) or isinstance(data, np.ndarray)):
+            self.data = data
+            self.name = name
+            self.size = len(data)
         else:
-            self.data=[]
+            self.data = []
             self.name = name
             self.size = len(data)
 
-    def addAttribute(self,attribute):
+    def addAttribute(self, attribute):
 
         if (isinstance(attribute, Attribute.Attribute)):
             self.data.append(attribute)
-        elif(isinstance(attribute,list) or isinstance(attribute,np.ndarray)):
-            attr= Attribute.Attribute(attribute)
+        elif (isinstance(attribute, list) or isinstance(attribute, np.ndarray)):
+            attr = Attribute.Attribute(attribute)
             self.data.append(attr)
 
     def printDataSet(self):
@@ -37,7 +39,7 @@ class DataSet:
         Function to normalize a DataSet
         :return: A normalized DataSet
         """
-        ds=DataSet([],name=self.name)
+        ds = DataSet([], name=self.name)
         for attr in self.data:
             ds.addAttribute(attr.normalize())
         return ds
@@ -57,7 +59,7 @@ class DataSet:
         This function computes the variance of a given DataSet
         :return: A vector containing the variance of each column data
         """
-        var=[attr.variance() for attr in self.data]
+        var = [attr.variance() for attr in self.data]
         return var
 
     def entropy(self):
@@ -69,8 +71,7 @@ class DataSet:
         entropy = [attr.entropy() for attr in self.data]
         return entropy
 
-
-    def discretize(self,num_bins,type,columns):
+    def discretize(self, num_bins, type, columns):
         """
         This function computes the dicretization of a given DataSet
         :param num_bins: Numeric value indicating the number of intervals. Default: half the length of the data
@@ -81,11 +82,11 @@ class DataSet:
         ds = DataSet([], name=self.name)
 
         for i in columns:
-            attr=self.data[i].discretize(num_bins=num_bins, typeDisc=type)
+            attr = self.data[i].discretize(num_bins=num_bins, typeDisc=type)
             ds.addAttribute(attr)
 
         return ds
-     
+
     def getNames(self):
         """
         This function returns the names of the columns of a given DataSet
@@ -94,7 +95,7 @@ class DataSet:
         """
         return [attr.getName() for attr in self.data]
 
-    def rocAuc(self,vIndex, classIndex):
+    def rocAuc(self, vIndex, classIndex):
         """
         Function to compute the AUC-ROC of the DataSet
         :param vIndex: index of the continuous variable to compute the AUC
@@ -132,16 +133,26 @@ class DataSet:
 
         return AUC
 
-
-    def asDataFrame(self):
-        matriz=[]
+    def asDataFrame(self, includeCategorical=True,transpose=True):
+        """
+        Function to convert a given DataSet in a DataFrame object
+        :param includeCategorical: Boolean indicating if the DataFrame will include categorical attributes
+        :param transpose: Boolean indicating if the resulting DataFrame has to be transposed
+        :return: a DataFrame object with the DataSet information
+        """
+        matriz = []
         for attr in self.data:
-            if(attr.isCategorical()==False):
+            if attr.isCategorical() == False and includeCategorical == False:
                 matriz.append(attr.getVector())
+            else:
+                matriz.append(attr.getVector())
+        if(transpose):
+            return pd.DataFrame(matriz).transpose()
+        else:
+            return pd.DataFrame(matriz)
 
-        return pd.DataFrame(matriz)
 
-def loadDataSet(path,sep=","):
+def loadDataSet(path, sep=","):
     """
     Function to read a CSV file and save it into a DataSet
     :param path: path to the CSV file
@@ -149,10 +160,22 @@ def loadDataSet(path,sep=","):
     :param sep: the character separator of the data
     :return: A DataSet containing the data of the CSV file.
     """
-    df = pd.read_csv(path,sep=sep)
+    df = pd.read_csv(path, sep=sep)
     print(df)
-    ds=DataSet([])
+    ds = DataSet([])
     for column in df:
-        attr=Attribute.Attribute(list(df[column]),name=column)
+        attr = Attribute.Attribute(list(df[column]), name=column)
         ds.addAttribute(attr)
     return ds
+
+
+def saveDataSet(ds, path, sep=","):
+    """
+    Function to save the DataSet object in a CSV file
+    :param ds: DataSet object to save
+    :param path: String with the path indicating where to save the DataSet
+    :param sep: A character containing the separator of the data, by default ','
+    :return:
+    """
+    df = ds.asDataFrame()
+    df.to_csv(path, sep=sep,header=ds.getNames(),index=False)

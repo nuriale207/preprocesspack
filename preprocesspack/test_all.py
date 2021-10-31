@@ -105,4 +105,12 @@ def test_all():
 
     ds.printDataSet()
     attr.printAttribute()
+
+    dataset.printDataSet()
+    graphics.correlationPlot(dataset)
+    DataSet.saveDataSet(dataset,"pruebaGuardar.csv")
+
+    loadedDS=DataSet.loadDataSet("pruebaGuardar.csv")
+
+
 test_all()

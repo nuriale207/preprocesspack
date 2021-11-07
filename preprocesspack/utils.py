@@ -116,3 +116,4 @@ def writeLog(file_path, text):
         outfile.writelines(str(today) + " " + text)
         print("Data correctly saved in: " + file_path)
 
+

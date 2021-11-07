@@ -1,5 +1,5 @@
 import numpy as np
-
+import sklearn
 from preprocesspack import utils
 #from utils import discretizeEF, discretizeEW, entropy
 
@@ -13,10 +13,14 @@ class Attribute:
         """
         if (isinstance(vector, list) or isinstance(vector, np.ndarray)):
             if (len(vector) >= 1):
+
                 self.vector = vector
                 self.name = name
                 self.size = len(vector)
                 self.type = type(vector[0])
+                if (type(vector[0])== str):
+                    self.vector=self.getCatAsInt()
+
             else:
                 raise ValueError("The vector parameter must have at least one element")
         else:
@@ -108,4 +112,60 @@ class Attribute:
         print(self.name)
         for i in self.vector:
             print(i)
+
+    def getCatAsInt(self):
+        if(self.isCategorical()):
+            elements = set(self.vector)
+            diccionario = dict(zip(elements, range(0, len(elements))))
+            return [diccionario[x] for x in self.vector]
+        else:
+            return self.vector
+
+def computeCorrelation(x,y,discretizationType="EW",num_bins=3):
+    """
+    This function computes the correlation between two vectors
+
+    :param x: a vector
+    :param y: a vector
+    :param discretizationType: if x and y are a mix of continuous and discrete variables a discretization is computed
+    in the continuous one. This parameter indicates the discretization type to compute: equal width "EW"
+    (default) or equal frequency "EF"
+    :param num_bins: if x and y are a mix of continuous and discrete variables a discretization is computed
+    in the continuous one. This parameter indicates the number of intervals to use in the discretization.
+    It's the  of y/3 by default
+    :return: A real number with the correlation between both vectors
+    """
+    xVector = x.getVector()
+    yVector = y.getVector()
+    if(x.isCategorical()==False and y.isCategorical()==True):
+        if(discretizationType=="EW"):
+            xVector=utils.discretizeEW(x.getVector(),num_bins)[0]
+            xDisc=Attribute(xVector)
+
+        else:
+            xVector=utils.discretizeEF(x.getVector(),num_bins)[0]
+            xDisc=Attribute(xVector)
+
+
+        return sklearn.metrics.mutual_info_score(xDisc.getCatAsInt(), y.getCatAsInt())
+
+    if (x.isCategorical() == True and y.isCategorical() == False):
+
+        if (discretizationType == "EW"):
+            yVector = utils.discretizeEW(y.getVector(), num_bins)[0]
+            yDisc=Attribute(yVector)
+
+        else:
+            yVector = utils.discretizeEF(y.getVector(), num_bins)[0]
+            yDisc=Attribute(yVector)
+
+        return sklearn.metrics.mutual_info_score(x.getCatAsInt(), yDisc.getCatAsInt())
+
+
+    if (x.isCategorical() == True and y.isCategorical() == True):
+
+        return sklearn.metrics.mutual_info_score(x.getCatAsInt(), y.getCatAsInt())
+    else:
+        return np.corrcoef(xVector,yVector)[0][1]
+
 

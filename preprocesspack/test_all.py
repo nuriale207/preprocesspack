@@ -18,6 +18,7 @@ def test_all():
     attrCatEF=attr.discretize(3,"EF")
     attrCatEW=attr.discretize(3,"EW")
 
+
     print (attrCatEF.vector)
     print (attrCatEW.vector)
     print (attr.vector)
@@ -106,11 +107,19 @@ def test_all():
     ds.printDataSet()
     attr.printAttribute()
 
+
     dataset.printDataSet()
-    graphics.correlationPlot(dataset)
+    #graphics.correlationPlot(dataset)
     DataSet.saveDataSet(dataset,"pruebaGuardar.csv")
 
     loadedDS=DataSet.loadDataSet("pruebaGuardar.csv")
+    print (loadedDS)
+    print (Attribute.computeCorrelation(attrNorm,attrCatEW))
+    print (Attribute.computeCorrelation(attrCatEF,attrCatEW))
+    print (Attribute.computeCorrelation(attrNorm,attrStd))
+    dataset.printDataSet()
 
+    loadedDS.printDataSet()
+    attr.printAttribute()
 
 test_all()

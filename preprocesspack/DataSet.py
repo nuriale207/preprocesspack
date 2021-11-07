@@ -16,11 +16,11 @@ class DataSet:
         if (isinstance(data, list) or isinstance(data, np.ndarray)):
             self.data = data
             self.name = name
-            self.size = len(data)
+            self.size = len(self.data)
         else:
             self.data = []
             self.name = name
-            self.size = len(data)
+            self.size = len(self.data)
 
     def addAttribute(self, attribute):
 
@@ -31,27 +31,54 @@ class DataSet:
             self.data.append(attr)
 
     def printDataSet(self):
-        for attr in self.data:
-            print(attr.getVector())
 
-    def normalize(self):
+        names=""
+        for j in range(len(self.data)):
+            attr=self.data[j]
+            name=attr.getName()
+            if(len(name)>8):
+                name=name[0:8]
+            else:
+                cuantos=8-len(name)
+                name=name+" "*cuantos
+            names=names+name+"\t"
+        print(names)
+        texto=""
+        for i in range(self.data[0].size):
+           for j in range(len(self.data)):
+               attr=self.data[j]
+
+               texto=texto+str(attr.getVector()[i])+"\t"+"\t"
+           texto=texto+"\n"
+
+        print (texto)
+
+
+    def normalize(self,columns=None):
         """
         Function to normalize a DataSet
         :return: A normalized DataSet
         """
-        ds = DataSet([], name=self.name)
-        for attr in self.data:
-            ds.addAttribute(attr.normalize())
+        ds = self
+        if(columns is None):
+            columns=range(len(self.data))
+        for i in columns:
+            attr=self.data[i]
+            ds.data[i]=attr
         return ds
 
-    def standardize(self):
+    def standardize(self,columns=None):
         """
         Function to standardize a DataSet
         :return: A standardized DataSet
         """
-        ds = DataSet([], name=self.name)
-        for attr in self.data:
-            ds.addAttribute(attr.standardize())
+        if (columns is None):
+            columns = range(len(self.data))
+
+        ds = self
+        for i in columns:
+            attr=self.data[i]
+            ds.data[i]=attr
         return ds
 
     def variance(self):
@@ -71,7 +98,7 @@ class DataSet:
         entropy = [attr.entropy() for attr in self.data]
         return entropy
 
-    def discretize(self, num_bins, type, columns):
+    def discretize(self, num_bins, type, columns=None):
         """
         This function computes the dicretization of a given DataSet
         :param num_bins: Numeric value indicating the number of intervals. Default: half the length of the data
@@ -79,11 +106,14 @@ class DataSet:
         :param columns: Numeric vector indicating the columns in which the discretization must be applied.
         :return: A dataSet with discrete ds. NA otherwise
         """
-        ds = DataSet([], name=self.name)
+        if (columns is None):
+            columns = range(len(self.data))
+
+        ds = self
 
         for i in columns:
             attr = self.data[i].discretize(num_bins=num_bins, typeDisc=type)
-            ds.addAttribute(attr)
+            ds.data[i]=attr
 
         return ds
 
@@ -151,6 +181,54 @@ class DataSet:
         else:
             return pd.DataFrame(matriz)
 
+    def correlation(self):
+        """
+        Function to compute the correlation matrix between the Attribute pairs of the dataset
+
+        :return:A matrix containing the correlation between attribute pairs.
+
+        """
+        correlation=np.zeros((len(self.data),len(self.data)))
+        for i in range(len(self.data)):
+            v1=self.data[i]
+            for j in range(i,len(self.data)):
+                v2=self.data[j]
+                valor=Attribute.computeCorrelation(v1,v2)
+                correlation[i][j]=valor
+                correlation[j][i]=valor
+        return correlation
+
+    def filter(self,threshold,FUN=None,inverse=False):
+        """
+         This function returns the filtered DataSet without the unnecessary attributes
+        :param FUN: function by which filter the data, it has to return a value per attribute. FUN=correlation by default
+        :param threshold: integer value that indicates the limit from which to remove the attribute
+        :param inverse:  If TRUE the attribute has to be below the threshold to remove ir.By default FALSE
+        :return:A DataSet without the filtered attributes
+        """
+        data=self
+        if(FUN==None):
+            cor=self.correlation()
+            elimino=set()
+            for i in range(len(self.data)):
+                for j in range(i,len(self.data)):
+                    if (i != j and cor[i][j] >= threshold and inverse==False):
+                        elimino.add(i)
+
+                    elif (i != j and cor[i][j] <threshold and inverse):
+                        elimino.add(i)
+            for id in elimino:
+                del data.data[id]
+        else:
+            result=[FUN(attr.getVector()) for attr in self.data]
+            if(inverse):
+                elementos=list(filter(lambda x: x > 3, result))
+            else:
+                elementos=list(filter(lambda x: x < 3, result))
+            for elem in elementos:
+                data.data.remove(elem)
+        return data
+
 
 def loadDataSet(path, sep=","):
     """
@@ -161,7 +239,6 @@ def loadDataSet(path, sep=","):
     :return: A DataSet containing the data of the CSV file.
     """
     df = pd.read_csv(path, sep=sep)
-    print(df)
     ds = DataSet([])
     for column in df:
         attr = Attribute.Attribute(list(df[column]), name=column)

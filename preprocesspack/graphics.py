@@ -13,8 +13,8 @@ def correlationPlot(dataset):
     :return: A plot with the visualization of the correlation matrix
     """
     #df=pd.DataFrame(dataset.data)
-    df = dataset.asDataFrame(includeCategorical=False,transpose=False)
-    correlation=df.corr()
+    #df = dataset.asDataFrame(includeCategorical=False,transpose=False)
+    correlation=dataset.correlation()
     ax = plt.axes()
     sns.heatmap(correlation, ax = ax,cmap="YlGnBu",center=0.5)
     ax.set_title('Correlation Plot')

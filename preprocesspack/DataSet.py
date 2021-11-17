@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 from preprocesspack import Attribute
@@ -32,42 +34,41 @@ class DataSet:
 
     def printDataSet(self):
 
-        names=""
+        names = ""
         for j in range(len(self.data)):
-            attr=self.data[j]
-            name=attr.getName()
-            if(len(name)>8):
-                name=name[0:8]
+            attr = self.data[j]
+            name = attr.getName()
+            if (len(name) > 8):
+                name = name[0:8]
             else:
-                cuantos=8-len(name)
-                name=name+" "*cuantos
-            names=names+name+"\t"
+                cuantos = 8 - len(name)
+                name = name + " " * cuantos
+            names = names + name + "\t"
         print(names)
-        texto=""
+        texto = ""
         for i in range(self.data[0].size):
-           for j in range(len(self.data)):
-               attr=self.data[j]
+            for j in range(len(self.data)):
+                attr = self.data[j]
 
-               texto=texto+str(attr.getVector()[i])+"\t"+"\t"
-           texto=texto+"\n"
+                texto = texto + str(attr.getVector()[i]) + "\t" + "\t"
+            texto = texto + "\n"
 
         print (texto)
 
-
-    def normalize(self,columns=None):
+    def normalize(self, columns=None):
         """
         Function to normalize a DataSet
         :return: A normalized DataSet
         """
-        ds = self
-        if(columns is None):
-            columns=range(len(self.data))
+        ds = copy.deepcopy(self)
+        if (columns is None):
+            columns = range(len(self.data))
         for i in columns:
-            attr=self.data[i]
-            ds.data[i]=attr
+            attr = ds.data[i]
+            ds.data[i] = attr.normalize()
         return ds
 
-    def standardize(self,columns=None):
+    def standardize(self, columns=None):
         """
         Function to standardize a DataSet
         :return: A standardized DataSet
@@ -75,10 +76,10 @@ class DataSet:
         if (columns is None):
             columns = range(len(self.data))
 
-        ds = self
+        ds = copy.deepcopy(self)
         for i in columns:
-            attr=self.data[i]
-            ds.data[i]=attr
+            attr = self.data[i]
+            ds.data[i] = attr.standardize()
         return ds
 
     def variance(self):
@@ -108,12 +109,12 @@ class DataSet:
         """
         if (columns is None):
             columns = range(len(self.data))
+        ds = copy.deepcopy(self)
 
-        ds = self
 
         for i in columns:
             attr = self.data[i].discretize(num_bins=num_bins, typeDisc=type)
-            ds.data[i]=attr
+            ds.data[i] = attr
 
         return ds
 
@@ -133,23 +134,29 @@ class DataSet:
         :return: The value of the AUC-ROC
         """
 
-        valor = np.array(self.data[vIndex].getVector())
-        valor = np.sort(valor)
-        etiqueta = np.array(self.data[classIndex].getVector())
+        dataFrameClass = pd.DataFrame({
+            "Value": np.array(self.data[vIndex].getVector()),
+            "Class": np.array(self.data[classIndex].getVector()),
+        })
+
+        dataFrameClass = dataFrameClass.sort_values("Value", ignore_index=True)
+        valores = dataFrameClass["Value"]
+        etiqueta = dataFrameClass["Class"]
+
         TPR = []
         FPR = []
-        for i in range(len(valor)):
-            predicciones = valor >= valor[i]
+        for i in range(len(valores)):
+            predicciones = valores >= valores[i]
             TP = 0
             TN = 0
             FN = 0
             FP = 0
             for j in range(len(predicciones)):
                 if (etiqueta[j] == predicciones[j] and predicciones[j] == True):
-                    TP = TP + 1;
+                    TP = TP + 1
                 elif (etiqueta[j] == predicciones[j] and predicciones[j] == False):
                     TN = TN + 1
-                elif (etiqueta[j] == 1 and predicciones[j] == 0):
+                elif (etiqueta[j] == True and predicciones[j] == False):
                     FN = FN + 1
                 else:
                     FP = FP + 1
@@ -160,10 +167,10 @@ class DataSet:
         dFPR = np.append(dFPR, 0)
         dTPR = np.append(dTPR, 0)
         AUC = sum(TPR * dFPR) + sum(dTPR * dFPR) / 2
+        AUC2 =sum(TPR + FPR) / 2
+        return AUC2
 
-        return AUC
-
-    def asDataFrame(self, includeCategorical=True,transpose=True):
+    def asDataFrame(self, includeCategorical=True, transpose=True):
         """
         Function to convert a given DataSet in a DataFrame object
         :param includeCategorical: Boolean indicating if the DataFrame will include categorical attributes
@@ -176,7 +183,7 @@ class DataSet:
                 matriz.append(attr.getVector())
             else:
                 matriz.append(attr.getVector())
-        if(transpose):
+        if (transpose):
             return pd.DataFrame(matriz).transpose()
         else:
             return pd.DataFrame(matriz)
@@ -188,47 +195,71 @@ class DataSet:
         :return:A matrix containing the correlation between attribute pairs.
 
         """
-        correlation=np.zeros((len(self.data),len(self.data)))
+        correlation = np.zeros((len(self.data), len(self.data)))
         for i in range(len(self.data)):
-            v1=self.data[i]
-            for j in range(i,len(self.data)):
-                v2=self.data[j]
-                valor=Attribute.computeCorrelation(v1,v2)
-                correlation[i][j]=valor
-                correlation[j][i]=valor
+            v1 = self.data[i]
+            for j in range(i, len(self.data)):
+                v2 = self.data[j]
+                valor = Attribute.computeCorrelation(v1, v2)
+                correlation[i][j] = valor
+                correlation[j][i] = valor
         return correlation
 
-    def filter(self,threshold,FUN=None,inverse=False):
+    def filter(self, threshold, FUN=None, inverse=False,columns=None):
         """
          This function returns the filtered DataSet without the unnecessary attributes
         :param FUN: function by which filter the data, it has to return a value per attribute. FUN=correlation by default
         :param threshold: integer value that indicates the limit from which to remove the attribute
         :param inverse:  If TRUE the attribute has to be below the threshold to remove ir.By default FALSE
+        :param columns: Numeric vector indicating the columns to filter.
         :return:A DataSet without the filtered attributes
         """
-        data=self
-        if(FUN==None):
-            cor=self.correlation()
-            elimino=set()
-            for i in range(len(self.data)):
-                for j in range(i,len(self.data)):
-                    if (i != j and cor[i][j] >= threshold and inverse==False):
-                        elimino.add(i)
+        if(columns==None):
+            columns=range(len(self.data))
+        data = copy.deepcopy(self)
+        if (FUN == None):
+            cor = self.correlation()
+            elimino = set()
+            for i in columns:
+                for j in columns:
+                    if (i != j and cor[i][j] >= threshold and inverse == False):
+                        if(j not in elimino):
+                            elimino.add(i)
 
-                    elif (i != j and cor[i][j] <threshold and inverse):
-                        elimino.add(i)
+                    elif (i != j and cor[i][j] < threshold and inverse):
+                        if (j not in elimino):
+                            elimino.add(i)
             for id in elimino:
                 del data.data[id]
         else:
-            result=[FUN(attr.getVector()) for attr in self.data]
-            if(inverse):
-                elementos=list(filter(lambda x: x > 3, result))
-            else:
-                elementos=list(filter(lambda x: x < 3, result))
-            for elem in elementos:
-                data.data.remove(elem)
-        return data
+            result = [FUN(attr.getVector()) for attr in data.data]
+            elimino = set()
+            for i in columns:
+                if (result[i] != None and result[i] != 'nan'):
 
+                    if inverse==False and result[i] >= threshold:
+                        #elementos = elementos.append(i)
+                        elimino.add(i)
+                    elif inverse and result[i] < threshold:
+                        #elementos=elementos.append(i)
+                        elimino.add(i)
+            for id in elimino:
+                #data.data.remove(elem)
+                del data.data[id]
+        return data
+    def setName(self,name):
+        """
+        Sets the given name to the dataset
+        :param name: String with the name
+        :return:
+        """
+        self.name=name
+    def getName(self):
+        """
+        Function to get the name of the dataset
+        :return: The dataset name
+        """
+        return self.name
 
 def loadDataSet(path, sep=","):
     """
@@ -255,4 +286,4 @@ def saveDataSet(ds, path, sep=","):
     :return:
     """
     df = ds.asDataFrame()
-    df.to_csv(path, sep=sep,header=ds.getNames(),index=False)
+    df.to_csv(path, sep=sep, header=ds.getNames(), index=False)

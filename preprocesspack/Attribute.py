@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import sklearn
 from preprocesspack import utils
@@ -60,14 +62,16 @@ class Attribute:
         Function to normalize a given Attribute.
         :return: A normalized attribute. If the attribute is categorical it will return a copy of the original attribute
         """
-        vector = self.vector
+        vector = self.vector.copy()
         if (type(self.vector[0]) is tuple):
             return Attribute(vector, self.name)
         else:
-            valor = min(self.vector)
-            vector = (np.array(vector))
-            vector = vector - valor
-            vector = vector / valor
+            # valor = min(self.vector)
+            # vector = (np.array(vector))
+            # vector = vector - valor
+            # vector = vector / valor
+            mod = math.sqrt(np.sum(np.power(self.vector, 2)))
+            vector=np.divide(vector,mod)
             return Attribute(vector, self.name)
 
     def standardize(self):
@@ -75,7 +79,7 @@ class Attribute:
         Function to standardize a given Attribute
         :return: A standardized attribute. If the attribute is categorical it will return a copy of the original attribute
         """
-        vector = self.vector
+        vector = self.vector.copy()
         if (type(self.vector[0]) is tuple):
             return Attribute(vector, self.name)
         else:

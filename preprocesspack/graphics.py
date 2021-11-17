@@ -17,7 +17,7 @@ def correlationPlot(dataset):
     correlation=dataset.correlation()
     ax = plt.axes()
     sns.heatmap(correlation, ax = ax,cmap="YlGnBu",center=0.5)
-    ax.set_title('Correlation Plot')
+    ax.set_title('Correlation Plot of ' +dataset.getName()+" dataset")
     plt.show()
 
 def entropyPlot(dataset):
@@ -35,6 +35,7 @@ def entropyPlot(dataset):
             entropyCleaned.append(entropy[i])
 
     plt.bar(names,entropyCleaned)
+    plt.title("Entropy plot of "+dataset.getName()+" dataset")
     plt.show()
 
 
@@ -46,32 +47,45 @@ def rocPlot(dataset, vIndex,classIndex):
     :param classIndex: index of the class
     :return: A plot with the curve
     """
-    valor = np.array(dataset.data[vIndex].getVector())
-    valor = np.sort(valor)
-    etiqueta = np.array(dataset.data[classIndex].getVector())
+
+    dataFrameClass = pd.DataFrame({
+        "Value": np.array(dataset.data[vIndex].getVector()),
+        "Class": np.array(dataset.data[classIndex].getVector()),
+    })
+
+    dataFrameClass=dataFrameClass.sort_values("Value",ignore_index=True)
+    valores = dataFrameClass["Value"]
+    etiqueta=dataFrameClass["Class"]
+
     TPR = []
     FPR = []
-    for i in range(len(valor)):
-        predicciones = valor >= valor[i]
+    for i in range(len(valores)):
+        predicciones = valores >= valores[i]
         TP = 0
         TN = 0
         FN = 0
         FP = 0
         for j in range(len(predicciones)):
             if (etiqueta[j] == predicciones[j] and predicciones[j] == True):
-                TP = TP + 1;
+                TP = TP + 1
             elif (etiqueta[j] == predicciones[j] and predicciones[j] == False):
                 TN = TN + 1
-            elif (etiqueta[j] == 1 and predicciones[j] == 0):
+            elif (etiqueta[j] == True and predicciones[j] == False):
                 FN = FN + 1
             else:
                 FP = FP + 1
         TPR.append(TP / (TP + FN))
         FPR.append(FP / (FP + TN))
+
     datos_plot = pd.DataFrame({
         "TPR": TPR,
         "FPR": FPR,
     })
-    ggp = ggplot(data=datos_plot, mapping=aes(x='FPR', y='TPR'))
-    ggp + geom_line()
-    print(ggp+ geom_line())
+
+    plt.plot(TPR,FPR)
+    plt.title("ROC curve of "+dataset.data[vIndex].getName()+" attribute")
+    plt.xlabel("TPR")
+    plt.ylabel("FPR")
+    # ggp = ggplot(data=datos_plot, mapping=aes(x='TPR', y='FPR'))
+    # ggp + geom_line()
+    # print(ggp+ geom_line())

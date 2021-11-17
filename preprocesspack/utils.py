@@ -60,7 +60,6 @@ def discretizeEF(x, num_bins):
 
             if i != 0 and (i % numXintervalo == 0 or i == n - 1):
                 limiteSup = vectorOrdenado[i]
-                print(i)
                 if (i == n - 1):
                     puntosCorte.append((limiteInf, math.inf))
                     limiteInf = limiteSup

@@ -8,7 +8,7 @@ setup(
    url='Indicar una URL para el paquete...',
    license='LICENSE.txt',
    description='Python package with useful functions for data pre-preprocessing',
-   long_description=open('README.txt').read(),
+   long_description=open('README.md').read(),
    tests_require=['pytest'],
    install_requires=[
       "seaborn >= 0.9.1",
